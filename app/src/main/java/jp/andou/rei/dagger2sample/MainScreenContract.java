@@ -7,11 +7,11 @@ public interface MainScreenContract {
     interface MainView {
         void confirmInput(View v);
         void showError(String message);
-        void startSecondActivity();
+        void startSecondActivity(String data);
     }
 
     interface MainScreenPresenter {
-        String saveData(String data);
+        void saveData(String data);
         boolean checkData(String data);
     }
 

@@ -9,6 +9,7 @@ import jp.andou.rei.dagger2sample.MainScreenContract.MainView;
 
 public class MainPresenter implements MainScreenPresenter, Presenter<MainView> {
 
+    @Nullable
     private MainView view;
     /**
      * Move to interactor
@@ -24,15 +25,24 @@ public class MainPresenter implements MainScreenPresenter, Presenter<MainView> {
     }
 
     @Override
-    public void setView(MainView view) {
+    public void setView(@Nullable MainView view) {
         this.view = view;
     }
 
     @Override
-    @Nullable
-    public String saveData(String data) {
+    public void saveData(String data) {
         //interactor.saveData(); for uniform access
-        return checkData(data) && dataCache.saveData(data) ? data : null;
+        if (!checkData(data) && view != null) {
+            view.showError("Введите текст больше 3х символов");
+            return;
+        }
+        if (!dataCache.saveData(data) && view != null) {
+            view.showError("Произошла ошибка при сохранении данных");
+            return;
+        }
+        if (view != null) {
+            view.startSecondActivity(data);
+        }
     }
 
     @Override
