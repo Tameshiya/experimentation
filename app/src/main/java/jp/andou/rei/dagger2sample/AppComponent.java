@@ -5,7 +5,7 @@ import javax.inject.Singleton;
 import dagger.Component;
 
 @Singleton
-@Component(modules = {SharedPreferencesModule.class, ApplicationCacheModule.class})
+@Component(modules = {SharedPreferencesModule.class, NetworkModule.class, ApplicationCacheModule.class})
 public interface AppComponent {
 
     void inject(MainActivity view);

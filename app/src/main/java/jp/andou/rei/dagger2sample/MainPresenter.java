@@ -1,14 +1,17 @@
 package jp.andou.rei.dagger2sample;
 
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import javax.inject.Inject;
 
 import jp.andou.rei.dagger2sample.MainScreenContract.MainScreenPresenter;
 import jp.andou.rei.dagger2sample.MainScreenContract.MainView;
+import retrofit2.Response;
 
-public class MainPresenter implements MainScreenPresenter, Presenter<MainView> {
+public class MainPresenter implements MainScreenPresenter {
 
+    private final RequestService service;
     @Nullable
     private MainView view;
     /**
@@ -18,10 +21,11 @@ public class MainPresenter implements MainScreenPresenter, Presenter<MainView> {
     private SavedDataCache dataCache;
 
     @Inject
-    public MainPresenter(MainInteractor interactor, SavedDataCache dataCache) {
+    public MainPresenter(MainInteractor interactor, SavedDataCache dataCache, RequestService service) {
         this.view = view;
         interactor.test();
         this.dataCache = dataCache;
+        this.service = service;
     }
 
     @Override
@@ -29,6 +33,10 @@ public class MainPresenter implements MainScreenPresenter, Presenter<MainView> {
         this.view = view;
     }
 
+    /**
+     * todo 二つの要請方法のかける時間を掛かること
+     * @param data
+     */
     @Override
     public void saveData(String data) {
         //interactor.saveData(); for uniform access
@@ -41,7 +49,14 @@ public class MainPresenter implements MainScreenPresenter, Presenter<MainView> {
             return;
         }
         if (view != null) {
-            view.startSecondActivity(data);
+//            view.startSecondActivity(data);
+            Request<User> request = service.getGithubGreeting();
+            request.getResponse()
+                    .subscribe((user) -> view.startSecondActivity(user.getCurrentUserUrl()));
+            request.getState()
+                    .subscribe(state -> Log.d("STATE", state.name()));
+            request.execute();
+
         }
     }
 

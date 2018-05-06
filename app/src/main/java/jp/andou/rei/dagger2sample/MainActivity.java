@@ -26,7 +26,8 @@ public class MainActivity extends AppCompatActivity implements MainView {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);((App) getApplication()).getApplicationComponent().inject(this);
+        setContentView(R.layout.activity_main);
+        ((App) getApplication()).getApplicationComponent().inject(this);
         unbinder = ButterKnife.bind(this);
         presenter.setView(this);
     }

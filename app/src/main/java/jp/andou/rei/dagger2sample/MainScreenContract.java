@@ -10,7 +10,7 @@ public interface MainScreenContract {
         void startSecondActivity(String data);
     }
 
-    interface MainScreenPresenter {
+    interface MainScreenPresenter extends Presenter<MainView> {
         void saveData(String data);
         boolean checkData(String data);
     }
