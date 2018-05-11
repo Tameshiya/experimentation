@@ -1,12 +1,16 @@
 package jp.andou.rei.dagger2sample;
 
 import android.support.annotation.Nullable;
+import android.util.Log;
+
+import java.util.ArrayList;
 
 import javax.inject.Inject;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 import jp.andou.rei.dagger2sample.MainScreenContract.MainScreenPresenter;
 import jp.andou.rei.dagger2sample.MainScreenContract.MainView;
-import jp.andou.rei.dagger2sample.request.RequestExecutor;
 import jp.andou.rei.dagger2sample.request.RequestService;
 
 public class MainPresenter implements MainScreenPresenter {
@@ -55,11 +59,34 @@ public class MainPresenter implements MainScreenPresenter {
             request.getState()
                     .subscribe(state -> Log.d("STATE", state.name()));
             request.execute();*/
-            new RequestExecutor().execute(
-                    1,
-                    (i) -> service.getUserInfo(),
+            /*new RequestExecutor().execute(
+                    (i) -> service.getParametrizedUserInfo(1, "", new LinkedList<>()),
                     user -> view.startSecondActivity(user.getCurrentUserUrl())
-            );
+            );*/
+            service.getParametrizedUserInfo(1, "", new ArrayList<>())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeOn(Schedulers.io())
+                    .doOnEach(user -> Log.e("TEST FOR RETRY", "" + user))
+                    .doOnError(t -> Log.e("SOME ERRROR", t.getMessage()))
+                    .doOnComplete(() -> Log.e("FINISH", "OF DOWNLOADING"));
+
+
+            //todo ただ何回もやり直すアルゴリズムです
+                    /*.repeatWhen(handler -> handler.delay(5, TimeUnit.SECONDS))
+                    .takeUntil(user -> user.getCurrentUserUrl() != null)
+                    .subscribe(user -> Log.e("TEST FOR RETRY", user.getCurrentUserUrl()));*/
+
+            // TODO: 18/05/12 この下のコードはリクエストが落ちた場合に何回も要請しなおすというRXアルゴリズム
+                    /*.retryWhen(
+                            (throwable) -> throwable.zipWith(
+                                    Observable.range(1, 5),
+                                    (n, i) -> i
+                            ).flatMap(i -> {
+                                Log.e("ATTEMPT NUMBER", "IS " + i);
+                                return Observable.timer(i * 5, TimeUnit.SECONDS);
+                            })
+                    ).subscribe(user -> Log.e("TEST FOR RETRY", user.getCurrentUserUrl()));*/
+
             /*service.oldSchoolRequest().enqueue(new Callback<User>() {
                 @Override
                 public void onResponse(Call<User> call, Response<User> response) {

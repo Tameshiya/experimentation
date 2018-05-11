@@ -7,10 +7,10 @@ import io.reactivex.functions.Function;
 
 public class RequestExecutor {
 
-    public <T> void execute(Integer arguments, Function<Integer, Request<T>> function,
+    public <T> void execute(Function<Integer, Request<T>> function,
                             Consumer<T> consumer) {
         try {
-            Request<T> request = function.apply(arguments);
+            Request<T> request = function.apply(/*attempt of number*/1);
             request.getResponse()
                     .subscribe(consumer);
             request.getState()
