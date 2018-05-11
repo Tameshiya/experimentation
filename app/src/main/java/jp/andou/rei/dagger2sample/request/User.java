@@ -1,8 +1,8 @@
-package jp.andou.rei.dagger2sample;
+package jp.andou.rei.dagger2sample.request;
 
 import com.google.gson.annotations.SerializedName;
 
-class User {
+public class User {
     /*
     "current_user_url": "https://api.github.com/user",
             "current_user_authorizations_html_url": "https://github.com/settings/connections/applications{/client_id}",

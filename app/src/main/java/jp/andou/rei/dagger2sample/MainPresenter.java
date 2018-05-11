@@ -1,13 +1,13 @@
 package jp.andou.rei.dagger2sample;
 
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import javax.inject.Inject;
 
 import jp.andou.rei.dagger2sample.MainScreenContract.MainScreenPresenter;
 import jp.andou.rei.dagger2sample.MainScreenContract.MainView;
-import retrofit2.Response;
+import jp.andou.rei.dagger2sample.request.RequestExecutor;
+import jp.andou.rei.dagger2sample.request.RequestService;
 
 public class MainPresenter implements MainScreenPresenter {
 
@@ -49,13 +49,29 @@ public class MainPresenter implements MainScreenPresenter {
             return;
         }
         if (view != null) {
-//            view.startSecondActivity(data);
-            Request<User> request = service.getGithubGreeting();
+            /*Request<User> request = service.getSingleUserInfo();
             request.getResponse()
                     .subscribe((user) -> view.startSecondActivity(user.getCurrentUserUrl()));
             request.getState()
                     .subscribe(state -> Log.d("STATE", state.name()));
-            request.execute();
+            request.execute();*/
+            new RequestExecutor().execute(
+                    1,
+                    (i) -> service.getUserInfo(),
+                    user -> view.startSecondActivity(user.getCurrentUserUrl())
+            );
+            /*service.oldSchoolRequest().enqueue(new Callback<User>() {
+                @Override
+                public void onResponse(Call<User> call, Response<User> response) {
+                    view.startSecondActivity(response.body().getCurrentUserUrl());
+                }
+
+                @Override
+                public void onFailure(Call<User> call, Throwable t) {
+
+                }
+            });*/
+//            view.startSecondActivity(data);
 
         }
     }
