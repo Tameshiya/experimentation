@@ -5,6 +5,7 @@ public enum RequestState {
     IDLE,
     RUNNING,
     ERROR,
+    FAILED,
     COMPLETE
 
 }

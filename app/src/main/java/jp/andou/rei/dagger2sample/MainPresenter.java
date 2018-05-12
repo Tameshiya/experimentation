@@ -3,15 +3,13 @@ package jp.andou.rei.dagger2sample;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import java.util.ArrayList;
-
 import javax.inject.Inject;
 
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 import jp.andou.rei.dagger2sample.MainScreenContract.MainScreenPresenter;
 import jp.andou.rei.dagger2sample.MainScreenContract.MainView;
+import jp.andou.rei.dagger2sample.request.Request;
 import jp.andou.rei.dagger2sample.request.RequestService;
+import jp.andou.rei.dagger2sample.request.User;
 
 public class MainPresenter implements MainScreenPresenter {
 
@@ -63,13 +61,12 @@ public class MainPresenter implements MainScreenPresenter {
                     (i) -> service.getParametrizedUserInfo(1, "", new LinkedList<>()),
                     user -> view.startSecondActivity(user.getCurrentUserUrl())
             );*/
-            service.getParametrizedUserInfo(1, "", new ArrayList<>())
+            /*service.getParametrizedUserInfo(1, "", new ArrayList<>())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribeOn(Schedulers.io())
-                    .doOnEach(user -> Log.e("TEST FOR RETRY", "" + user))
                     .doOnError(t -> Log.e("SOME ERRROR", t.getMessage()))
-                    .doOnComplete(() -> Log.e("FINISH", "OF DOWNLOADING"));
-
+                    .doOnLifecycle((s) -> Log.e("DO ON", "LifeCycleSUBSCRIBE"), () -> Log.e("DO ON", "DISPOSE"))
+                    .doOnComplete(() -> Log.e("DO ON", "COMPLETE"))*/
 
             //todo ただ何回もやり直すアルゴリズムです
                     /*.repeatWhen(handler -> handler.delay(5, TimeUnit.SECONDS))
@@ -85,21 +82,17 @@ public class MainPresenter implements MainScreenPresenter {
                                 Log.e("ATTEMPT NUMBER", "IS " + i);
                                 return Observable.timer(i * 5, TimeUnit.SECONDS);
                             })
-                    ).subscribe(user -> Log.e("TEST FOR RETRY", user.getCurrentUserUrl()));*/
+                    );*///.subscribe(user -> Log.e("TEST FOR RETRY", user.getCurrentUserUrl()));
 
-            /*service.oldSchoolRequest().enqueue(new Callback<User>() {
-                @Override
-                public void onResponse(Call<User> call, Response<User> response) {
-                    view.startSecondActivity(response.body().getCurrentUserUrl());
-                }
+            //todo ....
+            /*.retryWhen(throwable -> throwable.delay(5, TimeUnit.SECONDS))
+            .subscribe(user -> Log.e("TEST FOR RETRY", user.getCurrentUserUrl()));*/
 
-                @Override
-                public void onFailure(Call<User> call, Throwable t) {
-
-                }
-            });*/
-//            view.startSecondActivity(data);
-
+            Request<User> request = service.getSingleUserInfo();
+            //TODO: このロジックがプレゼンターの責任デスからもう一つのプレゼンターを創造しなければいけません。
+            request.getErrors().subscribe(throwable -> Log.e("ERROR", throwable.getMessage()));
+            request.getState().subscribe(state -> Log.e("STATE", state.name()));
+            request.execute();
         }
     }
 

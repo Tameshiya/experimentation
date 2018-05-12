@@ -1,16 +1,17 @@
 package jp.andou.rei.dagger2sample.request;
 
-import android.util.Log;
-
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
-
 public class RequestExecutor {
 
-    public <T> void execute(Function<Integer, Request<T>> function,
+    /*public static <T> RequestExecutor prepareRequest(Function<Integer, Observable<T>> function) {
+        try {
+            function.apply(1).
+        } catch (Exception ignore) {}
+    }*/
+
+    /*public <T> void execute(Function<Integer, Request<T>> function,
                             Consumer<T> consumer) {
         try {
-            Request<T> request = function.apply(/*attempt of number*/1);
+            Request<T> request = function.apply(*//*attempt of number*//*1);
             request.getResponse()
                     .subscribe(consumer);
             request.getState()
@@ -51,6 +52,6 @@ public class RequestExecutor {
         request.getErrors()
                 .subscribe(errorConsumer);
         request.execute();
-    }
+    }*/
 
 }

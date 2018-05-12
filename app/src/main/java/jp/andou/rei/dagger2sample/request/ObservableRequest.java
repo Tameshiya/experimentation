@@ -1,6 +1,11 @@
 package jp.andou.rei.dagger2sample.request;
 
+import android.util.Log;
+
+import com.jakewharton.rxrelay2.BehaviorRelay;
 import com.jakewharton.rxrelay2.PublishRelay;
+
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
@@ -12,6 +17,8 @@ public class ObservableRequest<T> extends Observable<T> implements Request<T> {
 
     private final Observable<T> observableSource;
     private final PublishRelay<T> response = PublishRelay.create();
+    private final BehaviorRelay<RequestState> state = BehaviorRelay.createDefault(RequestState.IDLE);
+    private final PublishRelay<Throwable> errors = PublishRelay.create();
 
     public ObservableRequest(Observable<T> observable) {
         state.accept(RequestState.IDLE);
@@ -20,10 +27,17 @@ public class ObservableRequest<T> extends Observable<T> implements Request<T> {
                 .subscribeOn(Schedulers.io())
                 .doOnError(t -> state.accept(RequestState.ERROR))
                 .doOnError(errors)
-                .onErrorResumeNext(Observable.empty())
-                .doOnComplete(() -> state.accept(RequestState.COMPLETE));
+                .doOnComplete(() -> state.accept(RequestState.COMPLETE))
+                .retryWhen(
+                        (throwable) -> throwable.zipWith(
+                                Observable.range(1, 5),
+                                (n, i) -> i
+                        ).flatMap(i -> {
+                            Log.e("ATTEMPT NUMBER", "IS " + i);
+                            return Observable.timer(i * 5, TimeUnit.SECONDS);
+                        })
+                );
     }
-
 
     @Override
     protected void subscribeActual(Observer<? super T> observer) {
@@ -41,7 +55,7 @@ public class ObservableRequest<T> extends Observable<T> implements Request<T> {
     }
 
     @Override
-    public PublishRelay<RequestState> getState() {
+    public BehaviorRelay<RequestState> getState() {
         return state;
     }
 
