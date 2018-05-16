@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 public class ObservableRequest<T> extends Observable<T> implements Request<T> {
@@ -27,16 +28,7 @@ public class ObservableRequest<T> extends Observable<T> implements Request<T> {
                 .subscribeOn(Schedulers.io())
                 .doOnError(t -> state.accept(RequestState.ERROR))
                 .doOnError(errors)
-                .doOnComplete(() -> state.accept(RequestState.COMPLETE))
-                .retryWhen(
-                        (throwable) -> throwable.zipWith(
-                                Observable.range(1, 5),
-                                (n, i) -> i
-                        ).flatMap(i -> {
-                            Log.e("ATTEMPT NUMBER", "IS " + i);
-                            return Observable.timer(i * 5, TimeUnit.SECONDS);
-                        })
-                );
+                .doOnComplete(() -> state.accept(RequestState.COMPLETE));
     }
 
     @Override
@@ -45,8 +37,27 @@ public class ObservableRequest<T> extends Observable<T> implements Request<T> {
     }
 
     @Override
-    public void execute() {
-        observableSource.subscribe(response);
+    public Disposable execute() {
+        return observableSource.subscribe(response);
+    }
+
+    @Override
+    public Disposable execute(int seconds) {
+        return observableSource.repeatWhen(throwable -> throwable.delay(5, TimeUnit.SECONDS))
+                .subscribe(response);
+    }
+
+    @Override
+    public Disposable execute(int seconds, int counter, boolean incremental) {
+        return observableSource.retryWhen(
+                (throwable) -> throwable.zipWith(
+                        Observable.range(1, counter),
+                        (n, i) -> i
+                ).flatMap(i -> {
+                    Log.d("ATTEMPT NUMBER", "IS " + i);
+                    return Observable.timer(incremental ? i * seconds : seconds, TimeUnit.SECONDS);
+                })
+        ).subscribe(response);
     }
 
     @Override

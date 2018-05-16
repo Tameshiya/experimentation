@@ -10,8 +10,8 @@ import retrofit2.http.Query;
 
 interface RestService {
 
-    @GET("/")
-    Observable<User> getUserInfo();
+    @GET("optional")
+    Single<ObjectModel> getOptional();
 
     @GET("/")
     Observable<User> getParametrizedUserInfo(

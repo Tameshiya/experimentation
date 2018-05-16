@@ -22,8 +22,8 @@ public class RequestService implements RestService {
     }
 
     @Override
-    public ObservableRequest<User> getUserInfo() {
-        return new ObservableRequest<>(service.getUserInfo());
+    public SingleRequest<ObjectModel> getOptional() {
+        return new SingleRequest<>(service.getOptional());
     }
 
     @Override

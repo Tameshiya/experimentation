@@ -7,9 +7,9 @@ import javax.inject.Inject;
 
 import jp.andou.rei.dagger2sample.MainScreenContract.MainScreenPresenter;
 import jp.andou.rei.dagger2sample.MainScreenContract.MainView;
+import jp.andou.rei.dagger2sample.request.ObjectModel;
 import jp.andou.rei.dagger2sample.request.Request;
 import jp.andou.rei.dagger2sample.request.RequestService;
-import jp.andou.rei.dagger2sample.request.User;
 
 public class MainPresenter implements MainScreenPresenter {
 
@@ -88,11 +88,11 @@ public class MainPresenter implements MainScreenPresenter {
             /*.retryWhen(throwable -> throwable.delay(5, TimeUnit.SECONDS))
             .subscribe(user -> Log.e("TEST FOR RETRY", user.getCurrentUserUrl()));*/
 
-            Request<User> request = service.getSingleUserInfo();
+            Request<ObjectModel> request = service.getOptional();
             //TODO: このロジックがプレゼンターの責任デスからもう一つのプレゼンターを創造しなければいけません。
             request.getErrors().subscribe(throwable -> Log.e("ERROR", throwable.getMessage()));
             request.getState().subscribe(state -> Log.e("STATE", state.name()));
-            request.execute();
+            request.execute(5, 5, false);
         }
     }
 

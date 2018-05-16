@@ -32,7 +32,8 @@ class NetworkModule {
         return new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .baseUrl("https://api.github.com/")
+                .baseUrl("https://demo6379364.mockable.io/")
+//                .baseUrl("https://api.github.com/")
                 .client(httpClient.build())
                 .build();
     }

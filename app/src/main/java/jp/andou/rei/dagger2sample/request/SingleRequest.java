@@ -10,6 +10,7 @@ import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.reactivex.SingleObserver;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 public class SingleRequest<T> extends Single<T> implements Request<T> {
@@ -23,19 +24,10 @@ public class SingleRequest<T> extends Single<T> implements Request<T> {
         singleSource = single.observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
 //                .doOnEvent((s,t) -> state.accept(RequestState.RUNNING))
-//                .doOnError(t -> state.accept(RequestState.ERROR))
                 .doOnError(errors)
-                .doAfterSuccess((c) -> state.accept(RequestState.COMPLETE))
-                .retryWhen(throwable -> {
-                    AtomicInteger counter = new AtomicInteger();
-                    return throwable.takeWhile(t -> counter.getAndIncrement() < 3)
-                            .flatMap(t -> Flowable.timer(5 * counter.get(), TimeUnit.SECONDS));
-                })
-//                .doOnSuccess((c) -> state.accept(RequestState.COMPLETE))
-                .doOnDispose(() -> state.accept(RequestState.FAILED))
-                //todo unlimited every 5 second
-//        .retryWhen(throwable -> throwable.delay(5, TimeUnit.SECONDS));
-                ;
+                .doOnError(t -> state.accept(RequestState.ERROR))
+                .doAfterSuccess((c) -> state.accept(RequestState.COMPLETE));
+//                .doOnDispose(() -> state.accept(RequestState.FAILED));
     }
 
     @Override
@@ -44,8 +36,27 @@ public class SingleRequest<T> extends Single<T> implements Request<T> {
     }
 
     @Override
-    public void execute() {
-        singleSource.subscribe(response, throwable -> {});
+    public Disposable execute() {
+        return singleSource.subscribe(response, throwable -> {});
+    }
+
+    @Override
+    public Disposable execute(int seconds) {
+        return singleSource.retryWhen(throwable -> throwable.delay(5, TimeUnit.SECONDS))
+                    .subscribe(response, throwable -> {});
+    }
+
+    @Override
+    public Disposable execute(int seconds, int attemptNumber, boolean incremental) {
+        return singleSource.retryWhen(throwable -> {
+            AtomicInteger counter = new AtomicInteger();
+            return throwable.takeWhile(t -> counter.getAndIncrement() < attemptNumber)
+                    .flatMap(
+                            t -> Flowable.timer(
+                                    incremental ? seconds * counter.get() : seconds, TimeUnit.SECONDS
+                            )
+                    );
+        }).subscribe(response, throwable -> {});
     }
 
     @Override
