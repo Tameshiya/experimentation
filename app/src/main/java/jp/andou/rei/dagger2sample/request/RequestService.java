@@ -5,6 +5,8 @@ import java.util.List;
 import javax.inject.Inject;
 
 import io.reactivex.Observable;
+import io.reactivex.Single;
+import jp.andou.rei.dagger2sample.CustomerInfo;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 
@@ -34,8 +36,8 @@ public class RequestService implements RestService {
     }
 
     @Override
-    public SingleRequest<User> getSingleUserInfo() {
-        return new SingleRequest<>(service.getSingleUserInfo());
+    public Single<List<CustomerInfo>> getSingleUserInfo() {
+        return /*new SingleRequest<>*/service.getSingleUserInfo();//);
     }
 
     @Override

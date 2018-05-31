@@ -4,6 +4,7 @@ import java.util.List;
 
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import jp.andou.rei.dagger2sample.CustomerInfo;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
@@ -20,8 +21,8 @@ interface RestService {
             @Query("someIds") List<Integer> someIds
     );
 
-    @GET("/")
-    Single<User> getSingleUserInfo();
+    @GET("picking/issue/processQueue")
+    Single<List<CustomerInfo>> getSingleUserInfo();
 
     @GET("/")
     Call<User> oldSchoolRequest();

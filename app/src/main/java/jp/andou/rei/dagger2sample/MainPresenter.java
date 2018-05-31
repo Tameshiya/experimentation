@@ -3,12 +3,17 @@ package jp.andou.rei.dagger2sample;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 import jp.andou.rei.dagger2sample.MainScreenContract.MainScreenPresenter;
 import jp.andou.rei.dagger2sample.MainScreenContract.MainView;
-import jp.andou.rei.dagger2sample.request.ObjectModel;
-import jp.andou.rei.dagger2sample.request.Request;
 import jp.andou.rei.dagger2sample.request.RequestService;
 
 public class MainPresenter implements MainScreenPresenter {
@@ -51,6 +56,25 @@ public class MainPresenter implements MainScreenPresenter {
             return;
         }
         if (view != null) {
+            Single<List<CustomerInfo>> single = service.getSingleUserInfo();
+
+            //dispose не работает, потому что это лишь просьба остановиться, как interrupt,
+            //поэтому необходимо для начала остановить потом, а потом dispose'ить
+            Observable.interval(10, TimeUnit.SECONDS)
+                                    .startWith(0L)
+//                .filter(f -> !mCanceling)
+                                    .flatMapSingle(o -> single)
+                                    .subscribeOn(Schedulers.io())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe(
+                                            (orders) -> {
+                                                Log.i("REQUEST", "IS EXECUTED");
+                                            },
+                                            (t) -> {
+                                                Log.e("REQUEST", "ERROR");
+                                            }
+                                    );
+
             /*Request<User> request = service.getSingleUserInfo();
             request.getResponse()
                     .subscribe((user) -> view.startSecondActivity(user.getCurrentUserUrl()));
@@ -88,11 +112,11 @@ public class MainPresenter implements MainScreenPresenter {
             /*.retryWhen(throwable -> throwable.delay(5, TimeUnit.SECONDS))
             .subscribe(user -> Log.e("TEST FOR RETRY", user.getCurrentUserUrl()));*/
 
-            Request<ObjectModel> request = service.getOptional();
+            /*Request<ObjectModel> request = service.getOptional();
             //TODO: このロジックがプレゼンターの責任デスからもう一つのプレゼンターを創造しなければいけません。
             request.getErrors().subscribe(throwable -> Log.e("ERROR", throwable.getMessage()));
             request.getState().subscribe(state -> Log.e("STATE", state.name()));
-            request.execute(5, 5, false);
+            request.execute(5, 5, false);*/
         }
     }
 
